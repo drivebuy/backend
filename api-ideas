@@ -1,0 +1,48 @@
+DriveBuy Api
+
+List drive
+    request -> {
+    address
+    availability
+        day of week
+        from
+        to
+    price
+    no of spaces
+    }
+    response -> drive
+    
+Search drives
+    request -> pid
+    response -> drive
+    
+Reserve
+    request -> {
+        pid
+        total time
+    }
+    response ->
+        reservation {
+            Succeed,
+            Unavailable
+        }
+        
+        
+drive: {
+    pid
+    address
+    availability
+        day of week
+        from
+        to
+    price
+    no of spaces
+    account
+    currentStatus: Available or unavailable
+    }
+
+    
+    
+
+
+        

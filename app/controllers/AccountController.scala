@@ -40,4 +40,4 @@ class AccountController @Inject()(validator: AccountCreateValidator,
   def protectedTest: Action[AnyContent] = (Action andThen authorised) {
     Ok(Json.toJson("Success"))
   }
-}
+}zg
