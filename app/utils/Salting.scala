@@ -4,5 +4,5 @@ import scala.util.Random
 
 object Salting {
 
-  def salt: String = Random.nextString(6)
+  def salt: String = Random.alphanumeric.take(6).mkString
 }

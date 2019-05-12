@@ -3,8 +3,7 @@ package repositories
 import java.util.UUID
 
 import com.google.inject.{ImplementedBy, Inject}
-import config.AppConfig
-import domain.{Account, AccountCreate, Password}
+import domain.{Account, Password}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.ReadConcern
@@ -28,8 +27,7 @@ trait AccountRepository {
   def newSession(email: String, sessionId: UUID): Future[Unit]
 }
 
-class MongoAccountRepository @Inject()(mongo: ReactiveMongoApi,
-                                       appConfig: AppConfig)(implicit ex: ExecutionContext)
+class MongoAccountRepository @Inject()(mongo: ReactiveMongoApi)(implicit ex: ExecutionContext)
   extends AccountRepository {
 
 
@@ -54,7 +52,7 @@ class MongoAccountRepository @Inject()(mongo: ReactiveMongoApi,
     val selector = Json.obj(emailField -> email)
 
     getAccount(collection, selector)
-      .map(_.filter{account => println(account.password);println(Password(password, account.password.salt));account.password == Password(password, account.password.salt)})
+      .map(_.filter{account => account.password == Password(password, account.password.salt)})
   }
 
   override def create(account: Account): Future[Unit] = {

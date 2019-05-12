@@ -11,19 +11,18 @@ import play.api.i18n.Messages
 class AccountCreateValidator @Inject()() {
 
   def validate(a: AccountCreate)(implicit messages: Messages): ValidatedNel[AccountError, AccountCreate] =
-    emailValid(a.email).combine(passwordValid(a.password)).map(_ => a)
+    (emailValid(a.email) |+| passwordValid(a.password)).map(_ => a)
 
-  private def emailValid(email: String)(implicit messages: Messages): ValidatedNel[AccountError, String] =
+  private def emailValid(email: String)(implicit messages: Messages): ValidatedNel[AccountError, Unit] =
     email match {
-      case s if s.matches("^[^@]+@[^@]+\\.[^@]+$") =>
-        email.validNel[AccountError]
-      case ""                      => AccountError.Email.missing.invalidNel[String]
-      case _                       => AccountError.Email.formatting.invalidNel[String]
+      case s if s.matches("^[^@]+@[^@]+\\.[^@]+$") => ().validNel
+      case "" => AccountError.Email.missing.invalidNel
+      case _  => AccountError.Email.formatting.invalidNel
     }
 
-  private def passwordValid(password: String)(implicit messages: Messages): ValidatedNel[AccountError, String] =
+  private def passwordValid(password: String)(implicit messages: Messages): ValidatedNel[AccountError, Unit] =
     password match {
-      case "" => AccountError.Password.missing.invalidNel[String]
-      case _  => password.validNel[AccountError]
+      case "" => AccountError.Password.missing.invalidNel
+      case _  => ().validNel
     }
 }

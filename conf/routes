@@ -9,5 +9,6 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /api/account/create         controllers.AccountController.create
 POST    /api/account/login          controllers.AccountController.login
 
-+nocsrf
+POST    /api/drives/create          controllers.DriveController.create
+
 POST    /api/test/protected         controllers.AccountController.protectedTest
