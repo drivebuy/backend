@@ -3,6 +3,8 @@ organization := "com.example"
 
 version := "1.0-SNAPSHOT"
 
+routesImport += "bindings.PIDBinder._,domain._"
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.12.8"

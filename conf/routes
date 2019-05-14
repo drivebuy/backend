@@ -9,6 +9,7 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /api/account/create         controllers.AccountController.create
 POST    /api/account/login          controllers.AccountController.login
 
-POST    /api/drives/create          controllers.DriveController.create
+GET     /api/drives/:pid            controllers.DriveController.get(pid: PID)
+POST    /api/drives                 controllers.DriveController.create
 
 POST    /api/test/protected         controllers.AccountController.protectedTest
