@@ -12,4 +12,8 @@ POST    /api/account/login          controllers.AccountController.login
 GET     /api/drives/:pid            controllers.DriveController.get(pid: PID)
 POST    /api/drives                 controllers.DriveController.create
 
+GET     /api/reservation/:pid       controllers.ReservationController.getActive(pid: PID)
+POST    /api/reservation/:pid       controllers.ReservationController.reserve(pid: PID)
+GET     /api/reservations/:pid      controllers.ReservationController.getAll(pid: PID)
+
 POST    /api/test/protected         controllers.AccountController.protectedTest

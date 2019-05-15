@@ -1,6 +1,15 @@
+import java.util.concurrent.TimeUnit
+
 import play.api.libs.json._
 
+import scala.concurrent.duration.Duration
+
 package object domain {
+
+  implicit val durationReads: Reads[Duration] = {
+    case JsNumber(value) => JsSuccess(Duration(value.toLong, TimeUnit.SECONDS))
+    case json => JsError(s"Unable to parse duration from json: $json")
+  }
 
   sealed abstract case class Positive(value: BigDecimal)
 
