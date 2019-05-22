@@ -1,11 +1,12 @@
 package repositories
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.LocalDateTime
 
 import com.google.inject.{ImplementedBy, Inject}
 import domain.{PID, Reservation, Reservations}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.Cursor
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.play.json.ImplicitBSONHandlers.JsObjectDocumentWriter
 import reactivemongo.play.json.collection.JSONCollection
@@ -24,12 +25,10 @@ trait ReservationRepository {
 
 class MongoReservationRepository @Inject()(mongo: ReactiveMongoApi)(implicit ec: ExecutionContext) extends ReservationRepository {
 
-  private val collectionName: String = "reservations"
+  private val collectionName = "reservations"
   private val pidField = "pid"
   private val reservations = "reservations"
-  private val accountId = "accountId"
-  private val startDate = "startDate"
-  private val endDate  = "endDate"
+  private val endTime = "endTime"
 
   private def collection: Future[JSONCollection] =
     mongo.database.map(_.collection[JSONCollection](collectionName))
@@ -45,16 +44,34 @@ class MongoReservationRepository @Inject()(mongo: ReactiveMongoApi)(implicit ec:
   override def getActive(pid: PID): Future[Reservations] = {
 
     val selector = Json.obj(
-      pidField -> pid.value,
-      s"$reservations.$endDate" -> Json.obj("$gt" -> jsonDate(LocalDateTime.now()))
+      pidField -> pid.value
     )
 
-    collection.flatMap(_.find(selector, None).one[JsValue])
-      .map { jOpt =>
+    val projection = Json.obj(
+      reservations -> Json.arr(
+        Json.obj(
+          "$filter" -> Json.obj(
+            "input" -> s"$$$reservations",
+            "as" -> "item",
+            "cond" -> Json.obj(
+              "$gt" -> Json.arr(
+                "$$item.endTime",
+                Json.toJson(LocalDateTime.now())(dateTimeFormat)
+              )
+            )
+          )
+        )
+      )
+    )
 
-        val reservation = jOpt.map(_.as[Reservation])
-        Reservations(pid, reservation.toList)
+    collection.flatMap { col =>
+
+      col.find(selector, Some(projection)).one[JsValue].map { jOpt =>
+
+        val reservations = jOpt.flatMap(json => (json \ "reservations").asOpt[List[Reservation]])
+        reservations.map(x => Reservations(pid, x)).getOrElse(Reservations.empty(pid))
       }
+    }
   }
 
   override def getAll(pid: PID): Future[Reservations] = {
@@ -75,18 +92,11 @@ class MongoReservationRepository @Inject()(mongo: ReactiveMongoApi)(implicit ec:
 
     val modifier = Json.obj(
       "$push" -> Json.obj(
-        reservations -> Json.obj(
-          accountId -> Json.toJson(reservation.accountId),
-          startDate -> jsonDate(reservation.startTime),
-          endDate   -> jsonDate(reservation.endTime)
-        )
+        reservations -> Json.toJson(reservation)
       )
     )
 
     collection.flatMap(_.update(false).one(selector, modifier, upsert = true).map(_ => ()))
 
   }
-
-  private def jsonDate(dateTime: LocalDateTime): JsObject =
-    Json.obj("$date" -> dateTime.toEpochSecond(ZoneOffset.UTC))
 }
