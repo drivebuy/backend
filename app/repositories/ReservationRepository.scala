@@ -43,36 +43,7 @@ class MongoReservationRepository @Inject()(mongo: ReactiveMongoApi)(implicit ec:
 
   override def getActive(pid: PID): Future[Reservations] = {
 
-    val selector = Json.obj(
-      pidField -> pid.value
-    )
-
-    val projection = Json.obj(
-      reservations -> Json.arr(
-        Json.obj(
-          "$filter" -> Json.obj(
-            "input" -> s"$$$reservations",
-            "as" -> "item",
-            "cond" -> Json.obj(
-              "$gt" -> Json.arr(
-                "$$item.endTime",
-                Json.toJson(LocalDateTime.now())(dateTimeFormat)
-              )
-            )
-          )
-        )
-      )
-    )
-
-    collection.flatMap { col =>
-
-      col.find(selector, Some(projection)).one[JsValue].map {
-
-        _.flatMap(json => (json \ reservations).asOpt[List[Reservation]])
-          .map(Reservations(pid, _))
-          .getOrElse(Reservations.empty(pid))
-      }
-    }
+    getAll(pid).map(r => r.copy(reservations = r.reservations.filter(_.endTime.isAfter(LocalDateTime.now()))))
   }
 
   override def getAll(pid: PID): Future[Reservations] = {
