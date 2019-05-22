@@ -68,8 +68,8 @@ class MongoReservationRepository @Inject()(mongo: ReactiveMongoApi)(implicit ec:
 
       col.find(selector, Some(projection)).one[JsValue].map { jOpt =>
 
-        val reservations = jOpt.flatMap(json => (json \ "reservations").asOpt[List[Reservation]])
-        reservations.map(x => Reservations(pid, x)).getOrElse(Reservations.empty(pid))
+        val res = jOpt.flatMap(json => (json \ reservations).asOpt[List[Reservation]])
+        res.map(x => Reservations(pid, x)).getOrElse(Reservations.empty(pid))
       }
     }
   }
